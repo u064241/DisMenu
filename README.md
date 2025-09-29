@@ -1,7 +1,3 @@
-<!--
-ORIGINAL ITALIAN README MOVED BELOW (kept for reference). This file is now in English for GitHub.
--->
-
 # DisMenu
 
 Python rewrite of the legacy batch menu `BATCH/DisMenu.bat` to operate on Windows image files (WIM / ESD) using DISM and (optionally) wimlib.
