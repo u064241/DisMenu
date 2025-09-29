@@ -24,7 +24,7 @@ except Exception:
     _HAS_COLORAMA = False
 
 # Helper unico per la pausa standard (evitare pause locali nei singoli menu)
-def pause(msg: str = "Premi INVIO per tornare al menu...") -> None:
+def pause(msg: str = "Press ENTER to return to the menu...") -> None:
     try:
         input(msg)
     except KeyboardInterrupt:
@@ -191,7 +191,7 @@ def load_config() -> None:
             global INFO_SPINNER
             INFO_SPINNER = isp
     except Exception as e:
-        log_error(f"Errore caricando config: {e}")
+        log_error(f"Error loading config: {e}")
 
 def save_config() -> None:
     """Salva configurazione persistente su disco."""
@@ -216,7 +216,7 @@ def save_config() -> None:
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
     except Exception as e:
-        log_error(f"Errore salvando config: {e}")
+        log_error(f"Error saving config: {e}")
 
 # ===== Path helper (exe/script dir) & external tools =====
 def _app_dir() -> Path:
@@ -243,15 +243,15 @@ def _wimlib_source_label() -> str:
     exe_dir = _app_dir()
     local = any((exe_dir / name).exists() for name in ("wimlib-imagex.exe", "wimlib-imagex"))
     if local:
-        return "locale (accanto all'eseguibile)"
+        return "local (next to executable)"
     # Prova a invocare --version dal PATH senza rumorosità
     try:
         cp = subprocess.run(["wimlib-imagex", "--version"], capture_output=True, text=True)
         if cp.returncode == 0:
-            return "PATH di sistema"
+            return "system PATH"
     except Exception:
         pass
-    return "assente"
+    return "missing"
 
 def _wimlib_version() -> Optional[str]:
     try:
@@ -281,20 +281,20 @@ def _find_readme() -> Optional[Path]:
 
 # Fallback testuale minimale in caso il README non sia disponibile
 HELP_TEXT = (
-    "DisMenu (Python) - Guida rapida\n\n"
-    "- Richiede privilegi amministrativi per operazioni RW.\n"
-    "- Le immagini .ESD non possono essere modificate in RW, solo export/convert.\n"
-    "- Menu 17: mostra log recenti.\n"
-    "- Menu 18: imposta cartella base per i mount.\n"
-    "- Menu 19: impostazioni console/verbose/backend (INVIO=default indicati).\n"
-    "- Menu 14/16: export/convert (wimlib se presente, altrimenti DISM).\n"
+    "DisMenu (Python) - Quick guide\n\n"
+    "- Administrative privileges are required for RW operations.\n"
+    "- .ESD images cannot be modified RW; use export/convert instead.\n"
+    "- Menu 17: show recent logs.\n"
+    "- Menu 18: set base folder for mounts.\n"
+    "- Menu 19: console/verbose/backend settings (ENTER=shown defaults).\n"
+    "- Menu 14/16: export/convert (wimlib if present, otherwise DISM).\n"
 )
 
 def menu_help() -> None:
-    print_header("Guida (README)")
+    print_header("Help (README)")
     readme = _find_readme()
     if readme:
-        print(f"Apro il file: {readme}")
+        print(f"Opening file: {readme}")
         # Default: apri con Notepad senza prompt
         try:
             subprocess.Popen(["notepad.exe", str(readme)])
@@ -318,27 +318,27 @@ def menu_help() -> None:
                 except Exception:
                     opened = False
             if not opened:
-                print("\n--- Guida rapida ---\n" + HELP_TEXT)
+                print("\n--- Quick guide ---\n" + HELP_TEXT)
     else:
-        print("README non trovato accanto all'eseguibile.")
-        print("\n--- Guida rapida ---\n" + HELP_TEXT)
+        print("README not found next to the executable.")
+        print("\n--- Quick guide ---\n" + HELP_TEXT)
     # Nessuna pausa qui: il main gestisce già la pausa di ritorno al menu
 
 def menu_open_logs_folder() -> None:
-    print_header("Apri cartella log")
-    # I log vivono in TEMP
+    print_header("Open logs folder")
+    # Logs live in TEMP
     log_dir = Path(TEMP)
-    print(f"Apro: {log_dir}")
+    print(f"Opening: {log_dir}")
     try:
         os.startfile(str(log_dir))  # type: ignore[attr-defined]
     except Exception as e:
-        print(f"[ERRORE] Impossibile aprire la cartella: {e}")
+        print(f"[ERROR] Unable to open folder: {e}")
     # Nessuna pausa qui: il main gestisce già la pausa di ritorno al menu
 
 def menu_cleanup_local_temp_dirs() -> None:
-    print_header("Pulisci cartelle temporanee (sessione)")
+    print_header("Clean temporary folders (session)")
     if not _CREATED_MOUNT_DIRS:
-        print("[INFO] Nessuna cartella di mount tracciata da questa sessione.")
+        print("[INFO] No mount folders tracked from this session.")
         return
     removed = 0
     failed = 0
@@ -349,11 +349,11 @@ def menu_cleanup_local_temp_dirs() -> None:
         try:
             if d.exists():
                 size_before = _dir_size(d)
-                print(f"- Rimuovo: {d}  (dim: {_format_bytes(size_before)})")
+                print(f"- Removing: {d}  (size: {_format_bytes(size_before)})")
                 _remove_dir_tree(d)
             else:
-                print(f"- Già assente: {d}")
-            # Se non esiste più, rimuovi dal tracking
+                print(f"- Already missing: {d}")
+            # If it's gone now, remove it from tracking
             if not d.exists():
                 try:
                     _CREATED_MOUNT_DIRS.remove(d)
@@ -368,8 +368,8 @@ def menu_cleanup_local_temp_dirs() -> None:
             failed += 1
             log_error(f"[CLEANUP-LOCAL] {d}: {e}")
     print()
-    print(color(f"[RISULTATO] Totale: {total}  Rimossi: {removed}  Non rimossi: {failed}", fg="yellow"))
-    print(color(f"[Spazio recuperato] {_format_bytes(reclaimed_bytes)}", fg="bright_green", bold=True))
+    print(color(f"[RESULT] Total: {total}  Removed: {removed}  Not removed: {failed}", fg="yellow"))
+    print(color(f"[Space reclaimed] {_format_bytes(reclaimed_bytes)}", fg="bright_green", bold=True))
 
 # ===== Utility =====
 def log_error(msg: str) -> None:
@@ -813,7 +813,7 @@ def _atexit_cleanup() -> None:
 atexit.register(_atexit_cleanup)
 
 def show_mounted_wims() -> None:
-    print_header("Montaggi WIM correnti")
+    print_header("Current mounted WIMs")
     cp = dism("/Get-MountedWimInfo", capture=True)
     if cp.stdout:
         print(cp.stdout, end="" if cp.stdout.endswith("\n") else "\n")
@@ -821,16 +821,16 @@ def show_mounted_wims() -> None:
         print(cp.stderr, end="" if cp.stderr.endswith("\n") else "\n")
 
 def cleanup_orphan_mounts() -> None:
-    print_header("Pulisci montaggi orfani")
-    ans = input("Eseguire DISM /Cleanup-Mountpoints? (s/N): ").strip().lower()
-    if ans not in {"s", "si", "sì", "y", "yes"}:
-        print("Operazione annullata.")
+    print_header("Clean orphan mounts")
+    ans = input("Run DISM /Cleanup-Mountpoints? (y/N): ").strip().lower()
+    if ans not in {"y", "yes"}:
+        print("Operation cancelled.")
         return
     cleanup_mountpoints()
-    print("[OK] Cleanup completato.")
-    # Mostra subito lo stato dei montaggi per verifica
+    print("[OK] Cleanup completed.")
+    # Show mount status immediately for verification
     print()
-    print_header("Stato montaggi dopo cleanup")
+    print_header("Mounts status after cleanup")
     show_mounted_wims()
 
 
@@ -842,7 +842,7 @@ def make_temp_mount(prefix: str = "mnt_") -> Path:
             MOUNT_BASE.mkdir(parents=True, exist_ok=True)
             base_dir = str(MOUNT_BASE)
         except Exception as e:
-            print(f"[WARN] Impossibile usare la cartella di mount personalizzata '{MOUNT_BASE}': {e}. Uso TEMP.")
+            print(f"[WARN] Unable to use custom mount folder '{MOUNT_BASE}': {e}. Using TEMP.")
             base_dir = None
     mount_dir = Path(tempfile.mkdtemp(prefix=prefix, dir=base_dir))
     # Traccia per cleanup a fine processo
@@ -870,7 +870,7 @@ def unmount(mount_dir: Path, commit: bool = False) -> None:
 
 def ensure_rw_allowed(image_path: Path) -> None:
     if image_path.suffix.lower() == ".esd":
-        raise RuntimeError("Operazione non consentita su ESD. Converti prima in WIM.")
+        raise RuntimeError("Operation not allowed on ESD. Convert to WIM first.")
 
 
 # ===== Input e autocompletamento =====
@@ -1016,7 +1016,7 @@ def mount_image(wim: Path, index: int, ro: bool = False) -> Path:
 # ====== Operazioni di menu ======
 
 def menu_getinfo() -> None:
-    wim = ask_path("Percorso WIM/ESD: ")
+    wim = ask_path("WIM/ESD path: ")
     if not wim:
         return
     cp = _run_dism_with_spinner_capture(["/Get-WimInfo", f"/WimFile:{str(wim)}"])
@@ -1025,7 +1025,7 @@ def menu_getinfo() -> None:
 
 
 def menu_mount_rw() -> None:
-    wim = ask_path("Percorso WIM/ESD: ")
+    wim = ask_path("WIM/ESD path: ")
     if not wim:
         return
     idx = ask_index()
@@ -1035,16 +1035,16 @@ def menu_mount_rw() -> None:
     mdir = mount_image(wim, idx, ro=False)
     # Piccolo sottomenu operativo
     if (mdir / "Windows").is_dir():
-        print("[OK] Montato (RW):", mdir)
+        print("[OK] Mounted (RW):", mdir)
     else:
-        print("[INFO] Cartella Windows non trovata (immagine diversa?)")
+        print("[INFO] Windows folder not found (different image?)")
     while True:
-        print("\nAzioni:")
-        print("  1) Apri cartella in Esplora File")
-        print("  2) Lascia montato e torna al menu")
-        print("  3) Smonta e salva (Commit)")
-        print("  4) Smonta e scarta (Discard)")
-        print("  0) Torna (lascia montato)")
+        print("\nActions:")
+        print("  1) Open folder in File Explorer")
+        print("  2) Leave mounted and return to menu")
+        print("  3) Unmount and save (Commit)")
+        print("  4) Unmount and discard (Discard)")
+        print("  0) Back (leave mounted)")
         try:
             pre = input("Scelta: ").strip()
         except KeyboardInterrupt:
@@ -1054,24 +1054,24 @@ def menu_mount_rw() -> None:
             try:
                 os.startfile(str(mdir))  # type: ignore[attr-defined]
             except Exception as e:
-                print(f"[ERRORE] Impossibile aprire Esplora: {e}")
+                print(f"[ERROR] Unable to open Explorer: {e}")
             continue
         if pre in {"2", "0"}:
-            print("[INFO] Lasciato montato. Usa il menu 23 per smontare più tardi.")
+            print("[INFO] Left mounted. Use menu 23 to unmount later.")
             return
         if pre == "3":
             unmount(mdir, commit=True)
-            print("[OK] Smontato con salvataggio.")
+            print("[OK] Unmounted with save.")
             return
         if pre == "4":
             unmount(mdir, commit=False)
-            print("[OK] Smontato senza salvare (discard).")
+            print("[OK] Unmounted without saving (discard).")
             return
-        print("[ERRORE] Scelta non valida.")
+        print("[ERROR] Invalid choice.")
 
 
 def menu_mount_ro() -> None:
-    wim = ask_path("Percorso WIM/ESD: ")
+    wim = ask_path("WIM/ESD path: ")
     if not wim:
         return
     idx = ask_index()
@@ -1079,15 +1079,15 @@ def menu_mount_ro() -> None:
         return
     mdir = mount_image(wim, idx, ro=True)
     if (mdir / "Windows").is_dir():
-        print("[OK] Montato (RO):", mdir)
+        print("[OK] Mounted (RO):", mdir)
     else:
-        print("[INFO] Cartella Windows non trovata (immagine diversa?)")
+        print("[INFO] Windows folder not found (different image?)")
     while True:
-        print("\nAzioni:")
-        print("  1) Apri cartella in Esplora File")
-        print("  2) Lascia montato e torna al menu")
-        print("  3) Smonta (Discard)")
-        print("  0) Torna (lascia montato)")
+        print("\nActions:")
+        print("  1) Open folder in File Explorer")
+        print("  2) Leave mounted and return to menu")
+        print("  3) Unmount (Discard)")
+        print("  0) Back (leave mounted)")
         try:
             pre = input("Scelta: ").strip()
         except KeyboardInterrupt:
@@ -1097,44 +1097,44 @@ def menu_mount_ro() -> None:
             try:
                 os.startfile(str(mdir))  # type: ignore[attr-defined]
             except Exception as e:
-                print(f"[ERRORE] Impossibile aprire Esplora: {e}")
+                print(f"[ERROR] Unable to open Explorer: {e}")
             continue
         if pre in {"2", "0"}:
-            print("[INFO] Lasciato montato in sola lettura. Usa il menu 23 per smontare più tardi.")
+            print("[INFO] Left mounted in read-only. Use menu 23 to unmount later.")
             return
         if pre == "3":
             unmount(mdir, commit=False)
-            print("[OK] Smontato (discard).")
+            print("[OK] Unmounted (discard).")
             return
-        print("[ERRORE] Scelta non valida.")
+        print("[ERROR] Invalid choice.")
 
 def menu_unmount_dir() -> None:
-    print_header("Smonta directory montata")
-    mdir = ask_path("Percorso MountDir da smontare: ")
+    print_header("Unmount mounted directory")
+    mdir = ask_path("MountDir path to unmount: ")
     if not mdir:
         return
     try:
-        ans = input("Salvare le modifiche (commit)? (s/N): ").strip().lower()
+        ans = input("Save changes (commit)? (y/N): ").strip().lower()
     except KeyboardInterrupt:
         print()
         ans = "n"
-    commit = ans in {"s", "si", "sì", "y", "yes"}
+    commit = ans in {"s", "si", "sì", "y", "yes", "y"}
     try:
         unmount(mdir, commit=commit)
-        print("[OK] Smontato.")
+        print("[OK] Unmounted.")
     except Exception as e:
-        print(f"[ERRORE] Smontaggio fallito: {e}")
+        print(f"[ERROR] Unmount failed: {e}")
 
 
 def _features_with_filter(wim: Path, idx: int) -> None:
-    print("\n=== Elenco features disponibili ===")
-    print("[1] Tutte")
-    print("[2] Solo Disabled")
-    print("[3] Solo Payload Removed")
-    print("[0] Torna")
-    choice = input("Scelta: ").strip()
+    print("\n=== Available features list ===")
+    print("[1] All")
+    print("[2] Only Disabled")
+    print("[3] Only Payload Removed")
+    print("[0] Back")
+    choice = input("Choice: ").strip()
     if choice not in {"0", "1", "2", "3"}:
-        print("[ERRORE] Scelta non valida.")
+        print("[ERROR] Invalid choice.")
         return
     if choice == "0":
         return
@@ -1170,14 +1170,14 @@ def _features_with_filter(wim: Path, idx: int) -> None:
                         print()
                         matched += 1
             if matched == 0:
-                print("[INFO] Nessuna feature corrispondente trovata.")
+                print("[INFO] No matching features found.")
     finally:
         unmount(mdir, commit=False)
         # nessuna pausa qui; il loop principale gestisce la pausa di ritorno
 
 
 def menu_listfeat() -> None:
-    wim = ask_path("Percorso WIM/ESD: ")
+    wim = ask_path("WIM/ESD path: ")
     if not wim:
         return
     idx = ask_index()
@@ -1187,17 +1187,17 @@ def menu_listfeat() -> None:
 
 
 def menu_enablefeat() -> None:
-    wim = ask_path("Percorso WIM/ESD: ")
+    wim = ask_path("WIM/ESD path: ")
     if not wim:
         return
     idx = ask_index()
     if idx is None:
         return
-    print("\n[Filtro] 1=Tutte 2=Disabled 3=Payload Removed 0=Salta")
-    pre = input("Scelta: ").strip()
+    print("\n[Filter] 1=All 2=Disabled 3=Payload Removed 0=Skip")
+    pre = input("Choice: ").strip()
     if pre in {"1", "2", "3"}:
         _features_with_filter(wim, idx)
-    feat = input("Feature da ABILITARE: ").strip()
+    feat = input("Feature to ENABLE: ").strip()
     if not feat:
         return
     ensure_rw_allowed(wim)
@@ -1214,13 +1214,13 @@ def menu_enablefeat() -> None:
             m = re.search(r"^\s*State\s*:\s*(.+)$", out, re.MULTILINE)
             state = (m.group(1).strip() if m else "?")
             if re.search(r"Enabled", state, re.IGNORECASE):
-                print(color(f"[OK] Feature '{feat}' abilitata (stato: {state}).", fg="bright_green", bold=True))
+                print(color(f"[OK] Feature '{feat}' enabled (state: {state}).", fg="bright_green", bold=True))
                 commit_ok = True
             elif re.search(r"Enable Pending", state, re.IGNORECASE):
-                print(color(f"[INFO] Abilitazione in sospeso per '{feat}' (stato: {state}).", fg="bright_cyan"))
+                print(color(f"[INFO] Enable pending for '{feat}' (state: {state}).", fg="bright_cyan"))
                 commit_ok = True
             else:
-                print(color(f"[WARN] Stato risultante per '{feat}': {state}.", fg="bright_yellow"))
+                print(color(f"[WARN] Resulting state for '{feat}': {state}.", fg="bright_yellow"))
         except Exception as e:
             print(color(f"[WARN] Impossibile verificare lo stato della feature: {e}", fg="bright_yellow"))
     finally:
@@ -1231,17 +1231,17 @@ def menu_enablefeat() -> None:
 
 
 def menu_disablefeat() -> None:
-    wim = ask_path("Percorso WIM/ESD: ")
+    wim = ask_path("WIM/ESD path: ")
     if not wim:
         return
     idx = ask_index()
     if idx is None:
         return
-    print("\n[Filtro] 1=Tutte 2=Disabled 3=Payload Removed 0=Salta")
-    pre = input("Scelta: ").strip()
+    print("\n[Filter] 1=All 2=Disabled 3=Payload Removed 0=Skip")
+    pre = input("Choice: ").strip()
     if pre in {"1", "2", "3"}:
         _features_with_filter(wim, idx)
-    feat = input("Feature da DISATTIVARE: ").strip()
+    feat = input("Feature to DISABLE: ").strip()
     if not feat:
         return
     ensure_rw_allowed(wim)
@@ -1258,13 +1258,13 @@ def menu_disablefeat() -> None:
             m = re.search(r"^\s*State\s*:\s*(.+)$", out, re.MULTILINE)
             state = (m.group(1).strip() if m else "?")
             if re.search(r"Disabled", state, re.IGNORECASE):
-                print(color(f"[OK] Feature '{feat}' disattivata (stato: {state}).", fg="bright_green", bold=True))
+                print(color(f"[OK] Feature '{feat}' disabled (state: {state}).", fg="bright_green", bold=True))
                 commit_ok = True
             elif re.search(r"Disable Pending", state, re.IGNORECASE):
-                print(color(f"[INFO] Disattivazione in sospeso per '{feat}' (stato: {state}).", fg="bright_cyan"))
+                print(color(f"[INFO] Disable pending for '{feat}' (state: {state}).", fg="bright_cyan"))
                 commit_ok = True
             else:
-                print(color(f"[WARN] Stato risultante per '{feat}': {state}.", fg="bright_yellow"))
+                print(color(f"[WARN] Resulting state for '{feat}': {state}.", fg="bright_yellow"))
         except Exception as e:
             print(color(f"[WARN] Impossibile verificare lo stato della feature: {e}", fg="bright_yellow"))
     finally:
@@ -1275,13 +1275,13 @@ def menu_disablefeat() -> None:
 
 
 def menu_addpkg() -> None:
-    wim = ask_path("Percorso WIM/ESD: ")
+    wim = ask_path("WIM/ESD path: ")
     if not wim:
         return
     idx = ask_index()
     if idx is None:
         return
-    pkg = ask_path("Percorso pacchetto CAB/MSU: ")
+    pkg = ask_path("CAB/MSU package path: ")
     if not pkg:
         return
     ensure_rw_allowed(wim)
@@ -1296,13 +1296,13 @@ def menu_addpkg() -> None:
 
 
 def menu_adddrv() -> None:
-    wim = ask_path("Percorso WIM/ESD: ")
+    wim = ask_path("WIM/ESD path: ")
     if not wim:
         return
     idx = ask_index()
     if idx is None:
         return
-    drv = ask_path("Percorso driver (.inf o cartella): ")
+    drv = ask_path("Driver path (.inf or folder): ")
     if not drv:
         return
     ensure_rw_allowed(wim)
@@ -1310,11 +1310,11 @@ def menu_adddrv() -> None:
     try:
         # Opzionale: forza driver non firmati
         try:
-            fu = input("Forzare driver non firmati? (s/N): ").strip().lower()
+            fu = input("Force unsigned drivers? (y/N): ").strip().lower()
         except KeyboardInterrupt:
             print()
             fu = ""
-        force = fu in {"s", "si", "sì", "y", "yes"}
+        force = fu in {"s", "si", "sì", "y", "yes", "y"}
 
         # Conteggio driver terze parti prima
         pre_cnt = _count_third_party_drivers(mdir)
@@ -1331,10 +1331,10 @@ def menu_adddrv() -> None:
         post_cnt = _count_third_party_drivers(mdir)
         delta = post_cnt - pre_cnt
         if delta > 0:
-            print(color(f"[OK] Aggiunti {delta} driver (prima: {pre_cnt}, dopo: {post_cnt}).", fg="bright_green", bold=True))
+            print(color(f"[OK] Added {delta} drivers (before: {pre_cnt}, after: {post_cnt}).", fg="bright_green", bold=True))
             commit_ok = True
         else:
-            print(color(f"[INFO] Nessun nuovo driver rilevato (prima: {pre_cnt}, dopo: {post_cnt}).", fg="bright_cyan"))
+            print(color(f"[INFO] No new drivers detected (before: {pre_cnt}, after: {post_cnt}).", fg="bright_cyan"))
     finally:
         # Commit solo se l'operazione principale è riuscita
         try:
@@ -1344,7 +1344,7 @@ def menu_adddrv() -> None:
 
 
 def menu_cleanup() -> None:
-    wim = ask_path("Percorso WIM/ESD: ")
+    wim = ask_path("WIM/ESD path: ")
     if not wim:
         return
     idx = ask_index()
@@ -1355,7 +1355,7 @@ def menu_cleanup() -> None:
     try:
         rc = _stream_dism_progress(["/Image:" + str(mdir), "/Cleanup-Image", "/StartComponentCleanup", "/ResetBase"])
         if rc != 0:
-            log_error("CLEANUP: StartComponentCleanup fallito")
+            log_error("CLEANUP: StartComponentCleanup failed")
         _stream_dism_progress(["/Unmount-Wim", f"/MountDir:{str(mdir)}", "/Commit"])
     finally:
         unmount(mdir, commit=False)
@@ -1368,10 +1368,10 @@ def _boot_has_index2(boot_wim: Path) -> bool:
 
 
 def menu_adddrvboot() -> None:
-    boot = ask_path("Percorso completo di boot.wim: ")
+    boot = ask_path("Full path to boot.wim: ")
     if not boot:
         return
-    drv = ask_path("Cartella driver (.inf o cartella): ")
+    drv = ask_path("Driver folder (.inf or folder): ")
     if not drv:
         return
     if not _boot_has_index2(boot):
@@ -1386,11 +1386,11 @@ def menu_adddrvboot() -> None:
 
         # Opzionale: forza driver non firmati
         try:
-            fu = input("Forzare driver non firmati? (s/N): ").strip().lower()
+            fu = input("Force unsigned drivers? (y/N): ").strip().lower()
         except KeyboardInterrupt:
             print()
             fu = ""
-        force = fu in {"s", "si", "sì", "y", "yes"}
+        force = fu in {"s", "si", "sì", "y", "yes", "y"}
 
         # Conteggio driver terze parti prima
         pre_cnt = _count_third_party_drivers(mdir)
@@ -1407,10 +1407,10 @@ def menu_adddrvboot() -> None:
         post_cnt = _count_third_party_drivers(mdir)
         delta = post_cnt - pre_cnt
         if delta > 0:
-            print(color(f"[OK] Aggiunti {delta} driver a boot.wim (prima: {pre_cnt}, dopo: {post_cnt}).", fg="bright_green", bold=True))
+            print(color(f"[OK] Added {delta} drivers to boot.wim (before: {pre_cnt}, after: {post_cnt}).", fg="bright_green", bold=True))
             commit_ok = True
         else:
-            print(color(f"[INFO] Nessun nuovo driver rilevato su boot.wim (prima: {pre_cnt}, dopo: {post_cnt}).", fg="bright_cyan"))
+            print(color(f"[INFO] No new drivers detected on boot.wim (before: {pre_cnt}, after: {post_cnt}).", fg="bright_cyan"))
     finally:
         # Commit solo se l'operazione principale è riuscita
         try:
@@ -1446,9 +1446,9 @@ def menu_remdrvbootfolder() -> None:
                         log_error(f"REMDRVBOOTFOLDER: remove-driver fallito {driver_inf}")
         _stream_dism_progress(["/Unmount-Wim", f"/MountDir:{str(mdir)}", "/Commit"])
         if errcnt == 0:
-            print(color("[OK] Rimozione completata.", fg="bright_green", bold=True))
+            print(color("[OK] Removal completed.", fg="bright_green", bold=True))
         else:
-            print(color(f"[INFO] Non rimossi: {errcnt} (vedi log)", fg="bright_cyan"))
+            print(color(f"[INFO] Not removed: {errcnt} (see log)", fg="bright_cyan"))
     finally:
         unmount(mdir, commit=False)
 
@@ -1927,29 +1927,29 @@ def _run_dism_with_spinner_capture(args: List[str]):
     return _Result(proc.returncode, "".join(out_lines), "".join(err_lines))
 
 MENU_ITEMS = {
-    "1": ("Elenca indici immagine", menu_getinfo),
-    "2": ("Monta immagine (RW) e smonta", menu_mount_rw),
-    "3": ("Monta immagine (RO) e smonta", menu_mount_ro),
-    "4": ("Controlla montaggi correnti", show_mounted_wims),
-    "5": ("Pulisci montaggi orfani", cleanup_orphan_mounts),
-    "6": ("Elenca features con filtro", menu_listfeat),
-    "7": ("Abilita feature", menu_enablefeat),
-    "8": ("Disabilita feature", menu_disablefeat),
-    "9": ("Aggiungi pacchetto (CAB/MSU)", menu_addpkg),
-    "10": ("Aggiungi driver", menu_adddrv),
-    "11": ("Pulizia componenti", menu_cleanup),
-    "12": ("Aggiungi driver a boot.wim (idx 2)", menu_adddrvboot),
-    "13": ("Rimuovi driver da boot.wim per cartella", menu_remdrvbootfolder),
-    "14": ("Esporta indici in nuovo WIM/ESD", menu_export),
-    "15": ("Controllo integrita' immagine", menu_checkhealth),
-    "16": ("Converti ESD in WIM", menu_convertesd),
-    "17": ("Mostra log recenti", menu_show_logs),
-    "18": ("Impostazioni: cartella mount", None),
-    "19": ("Impostazioni: console/verbose/backend", None),
-    "20": ("Guida (README)", menu_help),
-    "21": ("Apri cartella log", menu_open_logs_folder),
-    "22": ("Pulisci cartelle temp create (sessione)", menu_cleanup_local_temp_dirs),
-    "23": ("Smonta una cartella di mount esistente", menu_unmount_dir),
+    "1": ("List image indexes", menu_getinfo),
+    "2": ("Mount image (RW) and unmount", menu_mount_rw),
+    "3": ("Mount image (RO) and unmount", menu_mount_ro),
+    "4": ("Show mounted WIMs", show_mounted_wims),
+    "5": ("Cleanup orphan mounts", cleanup_orphan_mounts),
+    "6": ("List features with filter", menu_listfeat),
+    "7": ("Enable feature", menu_enablefeat),
+    "8": ("Disable feature", menu_disablefeat),
+    "9": ("Add package (CAB/MSU)", menu_addpkg),
+    "10": ("Add driver", menu_adddrv),
+    "11": ("Component cleanup", menu_cleanup),
+    "12": ("Add driver to boot.wim (idx 2)", menu_adddrvboot),
+    "13": ("Remove drivers from boot.wim by folder", menu_remdrvbootfolder),
+    "14": ("Export indexes to new WIM/ESD", menu_export),
+    "15": ("Image health check", menu_checkhealth),
+    "16": ("Convert ESD to WIM", menu_convertesd),
+    "17": ("Show recent logs", menu_show_logs),
+    "18": ("Settings: mount folder", None),
+    "19": ("Settings: console/verbose/backend", None),
+    "20": ("Help (README)", menu_help),
+    "21": ("Open logs folder", menu_open_logs_folder),
+    "22": ("Clean temp folders created (session)", menu_cleanup_local_temp_dirs),
+    "23": ("Unmount an existing mount directory", menu_unmount_dir),
 }
 
 def main() -> None:
@@ -2008,17 +2008,17 @@ def main() -> None:
         except Exception:
             wlbl = "?"
         print(color(f"    [MountDirBase: {mb}]  [Verbose: {VERBOSE}]  [ExportBackend: {EXPORT_BACKEND}]  [wimlib {wlbl}]", fg="yellow"))
-        print(color("    Scorciatoie: S = salva posizione ora", fg="bright_black"))
-        print(color("  0) Esci", fg="bright_cyan", bold=True))
+        print(color("    Shortcuts: S = save position now", fg="bright_black"))
+        print(color("  0) Exit", fg="bright_cyan", bold=True))
         print(color("=============================================", fg="bright_green", bold=True))
         try:
-            scelta = input("Scelta: ").strip()
+            scelta = input("Choice: ").strip()
         except KeyboardInterrupt:
-            print("\n[INFO] Uscita richiesta dall'utente.")
+            print("\n[INFO] Exit requested by user.")
             break
         if scelta == "0":
             break
-        # Scorciatoie: S = salva posizione ora
+        # Shortcuts: S = save position now
         if scelta.upper() == "S":
             try:
                 save_current_console_position()
@@ -2029,7 +2029,7 @@ def main() -> None:
         # Impostazioni speciali
         if scelta == "18":
             try:
-                path = input("Cartella base per mount temporanei (vuoto = usa TEMP): ").strip().strip('"')
+                path = input("Base folder for temporary mounts (empty = use TEMP): ").strip().strip('"')
             except KeyboardInterrupt:
                 print()
                 continue
@@ -2044,7 +2044,7 @@ def main() -> None:
             except Exception:
                 pass
             try:
-                vt = input("Abilita VT (ANSI colors) all'avvio (on/off, INVIO=off): ").strip().lower()
+                vt = input("Enable VT (ANSI colors) at startup (on/off, ENTER=off): ").strip().lower()
             except KeyboardInterrupt:
                 print()
                 vt = ""
@@ -2055,11 +2055,11 @@ def main() -> None:
                 # Applica subito alla console corrente
                 try:
                     _set_vt_mode(ANSI_VT)
-                    print(color(f"[INFO] VT {'abilitato' if ANSI_VT else 'disabilitato' }.", fg="bright_cyan"))
+                    print(color(f"[INFO] VT {'enabled' if ANSI_VT else 'disabled' }.", fg="bright_cyan"))
                 except Exception:
                     pass
             try:
-                qe = input("Disabilita QuickEdit per evitare pause su click (on/off, INVIO=on): ").strip().lower()
+                qe = input("Disable QuickEdit to avoid pauses on click (on/off, ENTER=on): ").strip().lower()
             except KeyboardInterrupt:
                 print()
                 qe = ""
@@ -2069,11 +2069,11 @@ def main() -> None:
                 DISABLE_QUICK_EDIT = (qe == "on")
                 try:
                     _set_quick_edit(DISABLE_QUICK_EDIT)
-                    print(color(f"[INFO] QuickEdit {'disabilitato' if DISABLE_QUICK_EDIT else 'abilitato'}.", fg="bright_cyan"))
+                    print(color(f"[INFO] QuickEdit {'disabled' if DISABLE_QUICK_EDIT else 'enabled'}.", fg="bright_cyan"))
                 except Exception:
                     pass
             try:
-                aot = input("AlwaysTop: on/off, INVIO=OFF: ").strip().lower()
+                aot = input("AlwaysTop: on/off, ENTER=OFF: ").strip().lower()
             except KeyboardInterrupt:
                 print()
                 continue
@@ -2083,11 +2083,11 @@ def main() -> None:
                 ALWAYS_ON_TOP = (aot == "on")
                 try:
                     _set_always_on_top(ALWAYS_ON_TOP)
-                    print(color(f"[INFO] AlwaysTop {'abilitato' if ALWAYS_ON_TOP else 'disabilitato' }.", fg="bright_cyan"))
+                    print(color(f"[INFO] AlwaysTop {'enabled' if ALWAYS_ON_TOP else 'disabled' }.", fg="bright_cyan"))
                 except Exception:
                     pass
             try:
-                wpm = input("Progress bar wimlib: line/off, INVIO=line: ").strip().lower()
+                wpm = input("Wimlib progress bar: line/off, ENTER=line: ").strip().lower()
             except KeyboardInterrupt:
                 print()
                 continue
@@ -2097,7 +2097,7 @@ def main() -> None:
                 WIMLIB_PROGRESS_MODE = wpm
             # Spinner informativi separato
             try:
-                isp = input("Spinner comandi informativi (Get-Features/Get-WimInfo): on/off, INVIO=on: ").strip().lower()
+                isp = input("Info commands spinner (Get-Features/Get-WimInfo): on/off, ENTER=on: ").strip().lower()
             except KeyboardInterrupt:
                 print()
                 isp = ""
@@ -2107,7 +2107,7 @@ def main() -> None:
                 INFO_SPINNER = (isp == "on")
             
             try:
-                v = input("Verbose log (on/off, INVIO=on): ").strip().lower()
+                v = input("Verbose log (on/off, ENTER=on): ").strip().lower()
             except KeyboardInterrupt:
                 print()
                 continue
@@ -2124,11 +2124,11 @@ def main() -> None:
                         pass
                 # Hint stato verbose
                 try:
-                    print(color(f"[INFO] Verbose {'abilitato' if VERBOSE else 'disabilitato' }.", fg="bright_cyan"))
+                    print(color(f"[INFO] Verbose {'enabled' if VERBOSE else 'disabled' }.", fg="bright_cyan"))
                 except Exception:
                     pass
             try:
-                cc = input("Centra finestra console all'avvio (on/off, INVIO=on): ").strip().lower()
+                cc = input("Center console window at startup (on/off, ENTER=on): ").strip().lower()
             except KeyboardInterrupt:
                 print()
                 continue
@@ -2138,11 +2138,11 @@ def main() -> None:
                 CENTER_CONSOLE = (cc == "on")
                 # Hint stato center console
                 try:
-                    print(color(f"[INFO] Center console {'abilitato' if CENTER_CONSOLE else 'disabilitato' }.", fg="bright_cyan"))
+                    print(color(f"[INFO] Center console {'enabled' if CENTER_CONSOLE else 'disabled' }.", fg="bright_cyan"))
                 except Exception:
                     pass
             try:
-                rp = input("Ripristina posizione salvata all'avvio (on/off, INVIO=off): ").strip().lower()
+                rp = input("Restore saved position at startup (on/off, ENTER=off): ").strip().lower()
             except KeyboardInterrupt:
                 print()
                 continue
@@ -2152,11 +2152,11 @@ def main() -> None:
                 RESTORE_CONSOLE_POS = (rp == "on")
                 # Hint stato restore console
                 try:
-                    print(color(f"[INFO] Restore console {'abilitato' if RESTORE_CONSOLE_POS else 'disabilitato' }.", fg="bright_cyan"))
+                    print(color(f"[INFO] Restore console {'enabled' if RESTORE_CONSOLE_POS else 'disabled' }.", fg="bright_cyan"))
                 except Exception:
                     pass
             try:
-                sv = input("Salva ORA posizione corrente come preferita? (s/N, INVIO=N): ").strip().lower()
+                sv = input("Save current position as preferred now? (y/N, ENTER=N): ").strip().lower()
             except KeyboardInterrupt:
                 print()
                 continue
@@ -2164,7 +2164,7 @@ def main() -> None:
                 save_current_console_position()
             # Retry/delay centratura finestra
             try:
-                rr = input(f"Tentativi centratura (0-5) [attuale {CENTER_RETRY}] (INVIO=mantieni): ").strip()
+                rr = input(f"Center attempts (0-5) [current {CENTER_RETRY}] (ENTER=keep): ").strip()
             except KeyboardInterrupt:
                 print()
                 continue
@@ -2174,11 +2174,11 @@ def main() -> None:
                     if 0 <= val <= 5:
                         CENTER_RETRY = val
                     else:
-                        print("[WARN] Valore fuori range (0-5), ignorato.")
+                        print("[WARN] Value out of range (0-5), ignored.")
                 except ValueError:
-                    print("[WARN] Valore non numerico, ignorato.")
+                    print("[WARN] Non-numeric value, ignored.")
             try:
-                dl = input(f"Ritardo tra tentativi (ms, 0-1000) [attuale {CENTER_DELAY_MS}] (INVIO=mantieni): ").strip()
+                dl = input(f"Delay between attempts (ms, 0-1000) [current {CENTER_DELAY_MS}] (ENTER=keep): ").strip()
             except KeyboardInterrupt:
                 print()
                 continue
@@ -2188,17 +2188,17 @@ def main() -> None:
                     if 0 <= val2 <= 1000:
                         CENTER_DELAY_MS = val2
                     else:
-                        print("[WARN] Valore fuori range (0-1000), ignorato.")
+                        print("[WARN] Value out of range (0-1000), ignored.")
                 except ValueError:
-                    print("[WARN] Valore non numerico, ignorato.")
+                    print("[WARN] Non-numeric value, ignored.")
             try:
-                b = input("Backend export (auto/dism/wimlib, INVIO=auto): ").strip().lower()
+                b = input("Export backend (auto/dism/wimlib, ENTER=auto): ").strip().lower()
             except KeyboardInterrupt:
                 print()
                 continue
             if b == "":
                 b = "auto"  # default richiesto
-                print("[INFO] Export backend: default 'auto' applicato.")
+                print("[INFO] Export backend: default 'auto' applied.")
             if b in {"auto", "dism", "wimlib"}:
                 EXPORT_BACKEND = b
             save_config()
@@ -2209,26 +2209,25 @@ def main() -> None:
         try:
             item[1]()
         except KeyboardInterrupt:
-            print("\n[INFO] Operazione annullata dall'utente.")
+            print("\n[INFO] Operation cancelled by user.")
             # prosegui al menu
             pass
         except RuntimeError as e:
-            print("[ERRORE]", e)
+            print("[ERROR]", e)
             log_error(str(e))
         except Exception as e:
-            print("[ERRORE] eccezione imprevista:", e)
+            print("[ERROR] unexpected exception:", e)
             log_error(repr(e))
         # Pausa standard tra un'operazione e il ritorno al menu
         pause()
 
-    print("\n===== RIEPILOGO SESSIONE =====")
-    print(f"Operazioni riuscite: {OKCNT}")
-    print(f"Operazioni fallite:  {FAILCNT}")
+    print("\n===== SESSION SUMMARY =====")
+    print(f"Successful operations: {OKCNT}")
+    print(f"Failed operations:     {FAILCNT}")
     if ERRLOG.exists():
-        print(f"Dettagli errori in: {ERRLOG}")
+        print(f"Error details in: {ERRLOG}")
     print("=============================")
 
 
 if __name__ == "__main__":
     main()
-
