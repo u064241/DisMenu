@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 DisMenu - Toolkit DISM in Python
 Replica il menu del batch `BATCH/DisMenu.bat` per operare su immagini WIM/ESD.
@@ -2233,3 +2231,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
