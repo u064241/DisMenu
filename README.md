@@ -215,8 +215,6 @@ Usually harmless; it stems from cleanup of the extraction directory. The program
 - 21: Open log folder
 - 22: Purge temporary mount folders created this session (shows freed space)
 - 23: Unmount an existing mount folder (if you left a mount from 2/3)
-
-Note (menu 2 & 3): After mounting a small sub‑menu lets you open the folder, leave it mounted and return to main menu, or unmount (commit/discard). If left mounted you can later unmount via entry 23.
 ---
 ## License
 
