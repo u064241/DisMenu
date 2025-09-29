@@ -220,18 +220,6 @@ Usually harmless; it stems from cleanup of the extraction directory. The program
 Note (menu 2 & 3): After mounting a small sub‑menu lets you open the folder, leave it mounted and return to main menu, or unmount (commit/discard). If left mounted you can later unmount via entry 23.
 
 ---
-
-## 16. Original Italian Text (Appendix)
-
-L'originale in italiano è stato mantenuto per comodità di confronto storico e revisione. Puoi rimuovere questa sezione se il repository sarà solo in inglese.
-
-<details>
-<summary>Espandi testo originale in italiano</summary>
-
-"Replica in Python del menu batch `BATCH/DisMenu.bat` per operazioni su WIM/ESD con DISM." (Il resto del contenuto originale era in questa stessa struttura ed è stato interamente tradotto sopra.)
-
-</details>
-
 ---
 
 ## License
