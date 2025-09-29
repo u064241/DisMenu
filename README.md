@@ -19,13 +19,13 @@ Python. \ Dismenu.py
 
 ## Operational Notes
 
-- Edit operations (ENABLE/Disable Feature, Add-Package/Driver, Cleanup) are not allowed on .SD files.
+- Edit operations (ENABLE/Disable Feature, Add-Package/Driver, Cleanup) are not allowed on .ESD files.
 - During the filtering of feature, the Dism output is forced to English for reliable research.
-- If you choose compression `recovery` but the destination is` .wim`, is automatically converted into `Max`.
+- If you choose compression "recovery" but the destination is ".wim", is automatically converted into "max".
 - Temporary Mounts are created in a random folder inside `` Temp%`and automatically disassembled.
-- In case of errors, check the log: `` `` `` `` `` `` `` `othi%%/
+- In case of errors, check the log: "%TEMP%/DisMenu_Errors.log"
 - Activate the detailed log (verbose) from menu 19 to save full strudouts/strors in `` `` temp%/dysmenu_verbose.gog`.
-- Sets the base folder for the Mount from menu 18 (useful if `` `temp%%` has no sufficient space).
+- Sets the base folder for the Mount from menu 18 (useful if "%temp%" has no sufficient space).
 - For fast exports/converts, if `` Wimlib-IMAGEX` is installed and selections Backend `Wimlib` (or leave` Auto`), will be used instead of Dism; With Wimlib you will also see a percentage advance bar.
 - Show the latest logs directly from menu 15 (Error Log and Verbose Log).
 - Wimlib indicator and backnd: in the state line see `[wimlib ...]` next to `[exportback: ...]`. If available, it shows the version (e.g. `1.14.x`); Otherwise it indicates the source (e.g. `local (next to the executable)` or `path of system ') or` absentee`.
