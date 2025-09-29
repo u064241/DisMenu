@@ -37,7 +37,6 @@ DisMenu is an interactive console tool to list, mount, modify and export Windows
 Open an elevated PowerShell in the project folder and run:
 
 ```powershell
-# from C:\SOURCECODE\PYTHON\POSTINSTALL
 python .\DisMenu.py
 ```
 
@@ -218,10 +217,7 @@ Usually harmless; it stems from cleanup of the extraction directory. The program
 - 23: Unmount an existing mount folder (if you left a mount from 2/3)
 
 Note (menu 2 & 3): After mounting a small sub‑menu lets you open the folder, leave it mounted and return to main menu, or unmount (commit/discard). If left mounted you can later unmount via entry 23.
-
 ---
----
-
 ## License
 
 Specify your license here (e.g. MIT). If not decided yet, add a `LICENSE` file later.
