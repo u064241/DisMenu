@@ -1,4 +1,4 @@
-# Dismenu (Python)
+# Dismenu
 
 Python replica of the Batch Menu Batch/Dismenu.bat 'for WIM/ESD operations with Dism.
 
@@ -13,7 +13,7 @@ Python replica of the Batch Menu Batch/Dismenu.bat 'for WIM/ESD operations with 
 Perform as an administrator:
 
 `` `Powershell
-# from the folder C: \ Sourcecode \ Python \ Postinstall
+# from the folder C:\Sourcecode\Python\Postinstall
 Python. \ Dismenu.py
 `` ``
 
